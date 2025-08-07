@@ -110,6 +110,26 @@ def convert_md_to_pdf(md_content):
 st.title("📄 Gemini QA to PDF Generator")
 st.markdown("Upload a `.txt` file with your questions, and get AI-generated answers exported as a styled PDF.")
 
+footer = """
+<style>
+.footer {
+    margin-top: 3rem;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 14px;
+    color: #aaa;
+    border-top: 1px solid #444;
+}
+</style>
+<div class="footer">
+  <div style="max-width: 800px; margin: auto;">
+    Made with ❤️ by Bhavya Shah | Answer_Gen Project
+  </div>
+</div>
+"""
+
+
+
 uploaded_file = st.file_uploader("Upload Questions File (.txt)", type=["txt"])
 
 if uploaded_file and st.session_state.api_key:
@@ -143,3 +163,5 @@ if uploaded_file and st.session_state.api_key:
             )
         except Exception as e:
             st.error(f"❌ Failed to generate PDF: {e}")
+            
+st.markdown(footer, unsafe_allow_html=True)
