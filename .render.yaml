@@ -1,7 +1,6 @@
 services:
   - type: web
-    name: gemini-pdf-app
+    name: answer-gen
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py
-    autoDeploy: true
+    startCommand: streamlit run main.py --server.port $PORT --server.enableCORS false
