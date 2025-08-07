@@ -2,17 +2,13 @@
 FROM python:3.10-slim
 
 # Install required system dependencies
-RUN apt-get update && \
-    apt-get install -y \
+RUN apt-get update && apt-get install -y \
     pandoc \
-    texlive-xetex \
-    fonts-freefont-ttf \
-    texlive-fonts-recommended \
-    texlive-latex-extra \
-    wget \
+    libreoffice \
+    fonts-liberation \
     curl \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    wget \
+    && apt-get clean
 
 # Set the working directory
 WORKDIR /app

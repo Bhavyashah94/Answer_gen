@@ -60,7 +60,7 @@ if st.session_state.api_key:
 
     if st.button("🔓 Clear API Key"):
         del st.session_state.api_key
-        st.experimental_rerun()
+        st.rerun()
 
 # === Functions ===
 def get_questions_from_txt(uploaded_file):
@@ -91,20 +91,17 @@ def convert_md_to_pdf(md_content):
         tmp_md.write(md_content)
         tmp_md_path = tmp_md.name
 
+    docx_path = tmp_md_path.replace(".md", ".docx")
     pdf_path = tmp_md_path.replace(".md", ".pdf")
 
-    # Customize layout: font, margin, size
-    pandoc_cmd = [
-        "pandoc",
-        tmp_md_path,
-        "-o", pdf_path,
-        "-V", "geometry:margin=0.8in",
-        "-V", "fontsize=11pt",
-        "-V", "mainfont=Calibri",
-        "--pdf-engine=xelatex"  # Requires MiKTeX or TeXLive
-    ]
+    # Step 1: Convert MD to DOCX
+    docx_cmd = ["pandoc", tmp_md_path, "-o", docx_path]
+    subprocess.run(docx_cmd, check=True)
 
-    subprocess.run(pandoc_cmd, check=True)
+    # Step 2: Convert DOCX to PDF (this uses Word on Windows or LibreOffice if installed)
+    # Try using LibreOffice for cross-platform conversion
+    libreoffice_cmd = ["libreoffice", "--headless", "--convert-to", "pdf", docx_path, "--outdir", os.path.dirname(pdf_path)]
+    subprocess.run(libreoffice_cmd, check=True)
 
     with open(pdf_path, "rb") as pdf_file:
         return pdf_file.read()
