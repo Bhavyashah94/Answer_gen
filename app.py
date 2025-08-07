@@ -16,19 +16,20 @@ request_timestamps = deque()
 
 def rate_limit():
     current_time = time.time()
-    
+
     # Remove old timestamps outside the 60-sec window
     while request_timestamps and current_time - request_timestamps[0] > RATE_LIMIT_WINDOW:
         request_timestamps.popleft()
-    
+
     if len(request_timestamps) >= MAX_REQUESTS_PER_MIN:
         wait_time = RATE_LIMIT_WINDOW - (current_time - request_timestamps[0]) + BUFFER_SECONDS
-        st.warning(f"⏳ Rate limit reached. Waiting {round(wait_time)} seconds...")
-        time.sleep(wait_time)
-        # After sleeping, remove outdated timestamps again
+        placeholder = st.empty()
+        for remaining in range(int(wait_time), 0, -1):
+            placeholder.warning(f"⏳ Rate limit reached. Waiting {remaining} seconds...")
+            time.sleep(1)
+        placeholder.empty()
         rate_limit()
-    
-    # Add current request time
+
     request_timestamps.append(time.time())
 
 
@@ -36,11 +37,30 @@ def rate_limit():
 st.set_page_config(page_title="Gemini QA to PDF", layout="centered")
 
 # === Gemini Setup ===
-api_key = st.secrets["GEMINI_API_KEY"] if "GEMINI_API_KEY" in st.secrets else st.text_input("Enter your Gemini API Key", type="password")
-if api_key:
-    os.environ["GOOGLE_API_KEY"] = api_key
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+
+# Try from secrets first
+if "GEMINI_API_KEY" in st.secrets:
+    st.session_state.api_key = st.secrets["GEMINI_API_KEY"]
+
+# Input field if not already in session
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
+
+if not st.session_state.api_key:
+    st.session_state.api_key = st.text_input("🔐 Enter your Gemini API Key", type="password")
+
+if st.session_state.api_key:
+    try:
+        os.environ["GOOGLE_API_KEY"] = st.session_state.api_key
+        genai.configure(api_key=st.session_state.api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        st.success("✅ API Key accepted.")
+    except Exception as e:
+        st.error(f"❌ Failed to configure Gemini: {e}")
+
+    if st.button("🔓 Clear API Key"):
+        del st.session_state.api_key
+        st.experimental_rerun()
 
 # === Functions ===
 def get_questions_from_txt(uploaded_file):
@@ -95,7 +115,7 @@ st.markdown("Upload a `.txt` file with your questions, and get AI-generated answ
 
 uploaded_file = st.file_uploader("Upload Questions File (.txt)", type=["txt"])
 
-if uploaded_file and api_key:
+if uploaded_file and st.session_state.api_key:
     questions = get_questions_from_txt(uploaded_file)
     qa_pairs = []
 
