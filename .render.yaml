@@ -1,6 +1,5 @@
 services:
   - type: web
     name: answer-gen
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run main.py --server.port $PORT --server.enableCORS false
+    env: docker
+
